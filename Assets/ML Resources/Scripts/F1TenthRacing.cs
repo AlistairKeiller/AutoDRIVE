@@ -90,7 +90,6 @@ public class F1TenthRacing : Agent
     public override void CollectObservations(VectorSensor sensor)
     {
         EV_Speed = EV_Rigidbody.velocity.magnitude;
-        sensor.AddObservation(EV_Speed); // Speed of ego-vehicle (m/s)
         sensor.AddObservation(EV_Rigidbody.position.x); // X position of ego
         sensor.AddObservation(EV_Rigidbody.position.z); // Z position of ego
         sensor.AddObservation(EV_Rigidbody.rotation.eulerAngles.y); // Yaw angle of ego
