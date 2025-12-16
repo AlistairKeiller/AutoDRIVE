@@ -89,45 +89,48 @@ public class F1TenthRacing : Agent
 
     public override void CollectObservations(VectorSensor sensor)
     {
-        EV_Speed = (float)System.Math.Abs(System.Math.Round(EV_ActuatorController.Vehicle.transform.InverseTransformDirection(EV_ActuatorController.Vehicle.GetComponent<Rigidbody>().velocity).z,2));
-        sensor.AddObservation((float)System.Math.Round(EV_Speed, 2)); // Speed of ego-vehicle (m/s)
+        EV_Speed = EV_Rigidbody.velocity.magnitude;
+        sensor.AddObservation(EV_Speed); // Speed of ego-vehicle (m/s)
+        sensor.AddObservation(EV_Rigidbody.position.x); // X position of ego
+        sensor.AddObservation(EV_Rigidbody.position.z); // Z position of ego
+        sensor.AddObservation(EV_Rigidbody.rotation.eulerAngles.y); // Yaw angle of ego
     }
 
     public override void OnActionReceived(ActionBuffers actions)
     {
         // DISCRETE ACTION SPACE
-        int DriveAction = Mathf.FloorToInt(actions.DiscreteActions[0]);
-        int SteerAction = Mathf.FloorToInt(actions.DiscreteActions[1]);
+        // int DriveAction = Mathf.FloorToInt(actions.DiscreteActions[0]);
+        // int SteerAction = Mathf.FloorToInt(actions.DiscreteActions[1]);
 
-        switch (DriveAction)
-        {
-            case 0:
-                EV_ActuatorController.CurrentThrottle = 0.1f; // Default to zero while demo recording
-                break;
-            case 1:
-                EV_ActuatorController.CurrentThrottle = 0.5f; // Not used while demo recording (discrete input 0/1)
-                break;
-            case 2:
-                EV_ActuatorController.CurrentThrottle = 1.0f; // Mostly used while demo recording
-                break;
-        }
+        // switch (DriveAction)
+        // {
+        //     case 0:
+        //         EV_ActuatorController.CurrentThrottle = 0.1f; // Default to zero while demo recording
+        //         break;
+        //     case 1:
+        //         EV_ActuatorController.CurrentThrottle = 0.5f; // Not used while demo recording (discrete input 0/1)
+        //         break;
+        //     case 2:
+        //         EV_ActuatorController.CurrentThrottle = 1.0f; // Mostly used while demo recording
+        //         break;
+        // }
 
-        switch (SteerAction)
-        {
-            case 0:
-                EV_ActuatorController.CurrentSteeringAngle = 1f; // Left turn
-                break;
-            case 1:
-                EV_ActuatorController.CurrentSteeringAngle = 0f; // Straight
-                break;
-            case 2:
-                EV_ActuatorController.CurrentSteeringAngle = -1f; // Right turn
-                break;
-        }
+        // switch (SteerAction)
+        // {
+        //     case 0:
+        //         EV_ActuatorController.CurrentSteeringAngle = 1f; // Left turn
+        //         break;
+        //     case 1:
+        //         EV_ActuatorController.CurrentSteeringAngle = 0f; // Straight
+        //         break;
+        //     case 2:
+        //         EV_ActuatorController.CurrentSteeringAngle = -1f; // Right turn
+        //         break;
+        // }
 
         // CONTINUOUS ACTION SPACE
-        //EV_ActuatorController.CurrentThrottle = Mathf.Clamp(actions.ContinuousActions[0], 0f, 1f); // Drive
-        //EV_ActuatorController.CurrentSteeringAngle = Mathf.Clamp(actions.ContinuousActions[1], -1f, 1f); // Steer
+        EV_ActuatorController.CurrentThrottle = Mathf.Clamp(actions.ContinuousActions[0], 0f, 1f); // Drive
+        EV_ActuatorController.CurrentSteeringAngle = Mathf.Clamp(actions.ContinuousActions[1], -1f, 1f); // Steer
 
         // REWARD FUNCTION
         if (CollisionFlag)
@@ -157,7 +160,7 @@ public class F1TenthRacing : Agent
         }
         else
         {
-            SetReward(EV_Speed*0.01f);
+            SetReward(EV_Speed * 0.01f);
         }
     }
 
@@ -187,20 +190,20 @@ public class F1TenthRacing : Agent
     public override void Heuristic(in ActionBuffers actionsOut)
     {
         // DISCRETE ACTION SPACE
-        var discreteActionsOut = actionsOut.DiscreteActions;
-        // Drive
-        if (Input.GetKey(ThrottleKey)) discreteActionsOut[0] = 2;
-        else discreteActionsOut[0] = 0;
-        // Steer
-        if (Input.GetKey(LeftSteerKey)) discreteActionsOut[1] = 0;
-        else if (Input.GetKey(RightSteerKey)) discreteActionsOut[1] = 2;
-        else discreteActionsOut[1] = 1;
+        // var discreteActionsOut = actionsOut.DiscreteActions;
+        // // Drive
+        // if (Input.GetKey(ThrottleKey)) discreteActionsOut[0] = 2;
+        // else discreteActionsOut[0] = 0;
+        // // Steer
+        // if (Input.GetKey(LeftSteerKey)) discreteActionsOut[1] = 0;
+        // else if (Input.GetKey(RightSteerKey)) discreteActionsOut[1] = 2;
+        // else discreteActionsOut[1] = 1;
 
 
         // CONTINUOUS ACTION SPACE
-        // var continuousActionsOut = actionsOut.ContinuousActions;
-        //actionsOut.ContinuousActions[0] = Input.GetAxis("Vertical"); // Drive
-        //actionsOut.ContinuousActions[1] = Input.GetAxis("Horizontal"); // Steer
+        var continuousActionsOut = actionsOut.ContinuousActions;
+        continuousActionsOut[0] = Input.GetAxis("Vertical"); // Drive
+        continuousActionsOut[1] = -Input.GetAxis("Horizontal"); // Steer
     }
 
     private void Update()
